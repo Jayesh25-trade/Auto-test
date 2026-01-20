@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Somaiya Link Tester</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #f44336, #8e24aa);
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+
+        .card {
+            max-width: 720px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #c62828;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            background: #c62828;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #b71c1c;
+        }
+
+        #stats {
+            margin-top: 14px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #log {
+            margin-top: 16px;
+            height: 280px;
+            overflow-y: auto;
+            background: #000;
+            color: #00ff66;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+        }
+
+        .downloads {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .downloads a {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            background: #1976d2;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .downloads a:hover {
+            background: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Somaiya Link Tester</h1>
+
+    <div class="field">
+        <input id="url" placeholder="Enter Website URL (e.g. https://www.somaiya.edu/en/)" />
+    </div>
+
+    <div class="field">
+        <input id="name" placeholder="Enter Report Name (e.g. somaiya-run1)" />
+    </div>
+
+    <button onclick="start()">Start Crawl</button>
+
+    <div id="stats">Idle</div>
+
+    <pre id="log"></pre>
+
+    <div class="downloads" id="downloads" style="display:none;">
+        <a id="okLink" href="#">Download Valid CSV</a>
+        <a id="badLink" href="#">Download Broken CSV</a>
+    </div>
+</div>
+
+<script>
+let timer;
+
+function start() {
+    const url = document.getElementById("url").value.trim();
+    const name = document.getElementById("name").value.trim();
+
+    if (!url || !name) {
+        alert("Please enter both URL and Report Name");
+        return;
+    }
+
+    document.getElementById("log").textContent = "";
+    document.getElementById("stats").innerText = "Starting...";
+    document.getElementById("downloads").style.display = "none";
+
+    fetch("/crawl", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({url, name})
+    })
+    .then(r => r.text())
+    .then(t => {
+        document.getElementById("log").textContent = t;
+        timer = setInterval(poll, 1000);
+    });
+}
+
+function poll() {
+    fetch("/status")
+        .then(r => r.json())
+        .then(s => {
+            document.getElementById("log").textContent = s.log;
+            document.getElementById("stats").innerText =
+                `Pages: ${s.pages} | Links: ${s.links} | OK: ${s.ok} | Broken: ${s.broken}`;
+
+            if (!s.running) {
+                clearInterval(timer);
+
+                const name = document.getElementById("name").value.trim();
+                document.getElementById("okLink").href = `/download/${name}_valid.csv`;
+                document.getElementById("badLink").href = `/download/${name}_broken.csv`;
+                document.getElementById("downloads").style.display = "flex";
+            }
+        });
+}
+</script>
+
+</body>
+</html>
