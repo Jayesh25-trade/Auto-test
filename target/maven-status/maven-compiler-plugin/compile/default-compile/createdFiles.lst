@@ -1,0 +1,7 @@
+com\somaiya\tester\crawler\SomaiyaSmartCrawler.class
+com\somaiya\tester\service\CrawlService.class
+com\somaiya\tester\controller\CrawlController.class
+com\somaiya\tester\crawler\SomaiyaSmartCrawler$Row.class
+com\somaiya\tester\SomaiyaLinkTesterApplication.class
+com\somaiya\tester\controller\CrawlController$CrawlRequest.class
+com\somaiya\tester\service\CrawlService$Status.class
